@@ -1,5 +1,3 @@
-import pytest
-
 from posture import scoring
 from posture.finding import Finding
 
@@ -35,8 +33,6 @@ def test_points_lost():
     assert scoring.points_lost(make_finding("spf_all_ok", "pass")) == 0
 
 
-# Amine: remove ONLY the "@pytest.mark.skip" line once get_band is written.
-@pytest.mark.skip(reason="get_band not written yet")
 def test_get_band():
     assert scoring.get_band(100) == "good"
     assert scoring.get_band(80) == "good"

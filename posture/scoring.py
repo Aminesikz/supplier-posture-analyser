@@ -33,7 +33,7 @@ WEIGHTS = {
 }
 
 GOOD_SCORE = 80  # 80 to 100 is "good"
-POOR_SCORE = 50  # below 50 is "poor", in between is "needs work"
+POOR_SCORE = 50  # below 50 is "poor" and in between is "needs work"
 
 
 def points_lost(finding):
@@ -44,12 +44,15 @@ def calculate_score(findings):
     score = 100
     for finding in findings:
         score = score - points_lost(finding)
-    # Many problems together could go below 0, so stop at 0.
     if score < 0:
-        score = 0
+        score = 0  # many problems together can go below zero, so stop at 0
     return score
 
 
 def get_band(score):
-    # TODO (Amine): write this. See the explanation in chat.
-    return ""
+    if score >= GOOD_SCORE:
+        return "good"
+    elif score >= POOR_SCORE:
+        return "needs work"
+    else:
+        return "poor"
