@@ -36,17 +36,14 @@ def get_ids(findings):
 
 
 # ---------- MX ----------
-# Amine: remove the two "@pytest.mark.skip" lines once check_mx is written.
 
 
-@pytest.mark.skip(reason="check_mx not written yet")
 def test_mx_found():
     findings = dns_checks.check_mx(["mail1.example.test", "mail2.example.test"])
     assert get_ids(findings) == ["mx_found"]
     assert findings[0].status == "pass"
 
 
-@pytest.mark.skip(reason="check_mx not written yet")
 def test_mx_missing():
     findings = dns_checks.check_mx([])
     assert get_ids(findings) == ["mx_missing"]

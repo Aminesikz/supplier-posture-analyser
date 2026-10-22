@@ -59,11 +59,17 @@ def find_dkim_selectors(domain):
 
 
 def check_mx(mx_hosts):
-    # TODO (Amine): write this check. See the explanation in chat.
-    # It should return a list with one Finding:
-    #   "mx_found" (pass) if mx_hosts is not empty
-    #   "mx_missing" (info) if it is empty
-    return []
+    if len(mx_hosts) > 0:
+        return [Finding(
+            "mx_found", "pass", "MX records found",
+            "The domain has MX records, which tell other servers where to deliver its email.",
+            "MX hosts: " + ", ".join(mx_hosts),
+        )]
+    return [Finding(
+        "mx_missing", "info", "No MX records",
+        "The domain has no MX records, so it may not receive email. This is not always a "
+        "problem. Some domains are only used for a website.",
+    )]
 
 
 # ---------- SPF ----------
