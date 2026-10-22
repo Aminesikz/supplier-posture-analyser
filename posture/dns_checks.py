@@ -43,6 +43,19 @@ def get_mx_hosts(domain):
     return hosts
 
 
+def get_caa_records(domain):
+    try:
+        answers = dns.resolver.resolve(domain, "CAA", lifetime=DNS_TIMEOUT)
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        return []
+
+    records = []
+    for answer in answers:
+        # str() gives the record as text, e.g. '0 issue "letsencrypt.org"'
+        records.append(str(answer))
+    return records
+
+
 def find_dkim_selectors(domain):
     found = []
     for selector in DKIM_SELECTORS:
@@ -316,6 +329,24 @@ def check_dkim(found_selectors):
         "DKIM is missing. DKIM selectors can have any name, and there is no way to list "
         "them from DNS.",
         "Selectors tried: " + tried,
+    )]
+
+
+# ---------- CAA ----------
+
+
+def check_caa(caa_records):
+    if len(caa_records) > 0:
+        return [Finding(
+            "caa_found", "pass", "CAA record found",
+            "The domain lists which certificate authorities may issue certificates for it. "
+            "This makes it harder to get a fake certificate for the domain.",
+            " | ".join(caa_records),
+        )]
+    return [Finding(
+        "caa_missing", "warn", "No CAA record",
+        "The domain does not limit which certificate authorities may issue certificates "
+        "for it. Any public authority could issue one.",
     )]
 
 

@@ -185,3 +185,15 @@ def test_dkim_not_found_is_info_and_says_it_is_not_proof():
     assert get_ids(findings) == ["dkim_not_found"]
     assert findings[0].status == "info"
     assert "does NOT prove" in findings[0].detail
+
+
+# ---------- CAA ----------
+
+
+def test_caa_found():
+    findings = dns_checks.check_caa(['0 issue "letsencrypt.org"'])
+    assert get_ids(findings) == ["caa_found"]
+
+
+def test_caa_missing():
+    assert get_ids(dns_checks.check_caa([])) == ["caa_missing"]

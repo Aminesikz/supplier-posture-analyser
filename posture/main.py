@@ -4,6 +4,8 @@ import sys
 import dns.exception
 
 from posture import dns_checks
+from posture import tls_checks
+from posture import web_checks
 from posture.finding import Finding
 
 ALLOWED_DOMAIN_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789-."
@@ -49,6 +51,24 @@ def run_all_checks(domain):
             "A DNS lookup failed, so the email results are not complete. Try again later.",
             str(error),
         ))
+
+    try:
+        findings.extend(dns_checks.check_caa(dns_checks.get_caa_records(domain)))
+    except dns.exception.DNSException as error:
+        findings.append(Finding(
+            "caa_check_failed", "error", "CAA check could not finish",
+            "The DNS lookup for CAA records failed. Try again later.",
+            str(error),
+        ))
+
+    host, homepage = web_checks.get_homepage(domain)
+    findings.extend(web_checks.run_web_checks(domain, host, homepage))
+
+    # Check TLS on the host that answered. If none did, try the bare domain anyway,
+    # because a server that only speaks old TLS fails the normal HTTPS request.
+    if host == "":
+        host = domain
+    findings.extend(tls_checks.run_tls_checks(host))
     return findings
 
 
