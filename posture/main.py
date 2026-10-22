@@ -4,6 +4,8 @@ import sys
 import dns.exception
 
 from posture import dns_checks
+from posture import questions
+from posture import scoring
 from posture import tls_checks
 from posture import web_checks
 from posture.finding import Finding
@@ -72,12 +74,34 @@ def run_all_checks(domain):
     return findings
 
 
-def print_findings(domain, findings):
+def print_summary(domain, findings, score, band, questions):
     print("Results for " + domain)
     print()
     for finding in findings:
         label = finding.status.upper().ljust(5)
-        print("  [" + label + "] " + finding.title)
+        line = "  [" + label + "] " + finding.title
+        points = scoring.points_lost(finding)
+        if points > 0:
+            line = line + " (-" + str(points) + ")"
+        print(line)
+
+    print()
+    print("Score: " + str(score) + "/100 (" + band + ")")
+
+    error_count = 0
+    for finding in findings:
+        if finding.status == "error":
+            error_count += 1
+    if error_count > 0:
+        print("Note: " + str(error_count) + " check(s) could not finish, so the score may be too high.")
+
+    if len(questions) > 0:
+        print()
+        print("Questions to ask this supplier:")
+        number = 1
+        for question in questions:
+            print("  " + str(number) + ". " + question)
+            number += 1
 
 
 def main():
@@ -88,7 +112,10 @@ def main():
         return 1
 
     findings = run_all_checks(domain)
-    print_findings(domain, findings)
+    score = scoring.calculate_score(findings)
+    band = scoring.get_band(score)
+    supplier_questions = questions.generate_questions(findings)
+    print_summary(domain, findings, score, band, supplier_questions)
     return 0
 
 
