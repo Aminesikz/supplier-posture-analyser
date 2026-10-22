@@ -1,5 +1,3 @@
-import pytest
-
 from posture import dns_checks
 
 # A pretend DNS. Each name maps to the TXT records it would return.

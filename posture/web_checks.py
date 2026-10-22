@@ -13,7 +13,7 @@ PAUSE_SECONDS = 1  # short wait before each request, to be polite to the server
 
 
 def fetch(url):
-    # Returns the response, or None if the request failed (timeout, bad certificate, ...).
+    # Returns the response, or None if the request failed
     time.sleep(PAUSE_SECONDS)
     try:
         return requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=HTTP_TIMEOUT)
@@ -23,8 +23,6 @@ def fetch(url):
 
 def get_homepage(domain):
     # Try https://domain first. If that fails, try https://www.domain.
-    # Returns two things: the host that worked and its response.
-    # If neither worked, returns "" and None.
     hosts_to_try = [domain]
     if not domain.startswith("www."):
         hosts_to_try.append("www." + domain)
@@ -154,8 +152,18 @@ def check_frame_protection(headers):
 
 
 def check_referrer_policy(headers):
-    # TODO (Amine): write this check. See the explanation in chat.
-    return []
+    if "referrer-policy" in headers:
+        return [Finding(
+            "referrer_policy_found", "pass", "Referrer-Policy is set",
+            "The site controls how much of its web address is shared with other sites "
+            "when users click a link.",
+            headers["referrer-policy"],
+        )]
+    return [Finding(
+        "referrer_policy_missing", "warn", "No Referrer-Policy header",
+        "The site does not set a Referrer-Policy, so browsers use their own default. "
+        "Older browsers may share full page addresses with other sites.",
+    )]
 
 
 # ---------- security.txt ----------

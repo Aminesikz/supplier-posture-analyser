@@ -1,5 +1,3 @@
-import pytest
-
 from posture import web_checks
 
 
@@ -79,14 +77,12 @@ def test_frame_protection_missing():
     assert get_ids(findings) == ["frame_protection_missing"]
 
 
-@pytest.mark.skip(reason="check_referrer_policy not written yet")
 def test_referrer_policy_found():
     findings = web_checks.check_referrer_policy({"referrer-policy": "strict-origin-when-cross-origin"})
     assert get_ids(findings) == ["referrer_policy_found"]
     assert findings[0].status == "pass"
 
 
-@pytest.mark.skip(reason="check_referrer_policy not written yet")
 def test_referrer_policy_missing():
     findings = web_checks.check_referrer_policy({})
     assert get_ids(findings) == ["referrer_policy_missing"]
