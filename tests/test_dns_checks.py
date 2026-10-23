@@ -19,6 +19,7 @@ FAKE_TXT_RECORDS = {
     # DKIM keys
     "selector1._domainkey.dkim.test": ["v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEB"],
     "google._domainkey.dkim.test": ["v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0B"],
+    "default._domainkey.dkim.test": ["v=DKIM1; p="],  # empty key = revoked
 }
 
 
@@ -129,8 +130,8 @@ def test_spf_lookups_ok():
 # ---------- DMARC ----------
 
 
-def test_parse_dmarc_tags():
-    tags = dns_checks.parse_dmarc_tags("v=DMARC1; p=reject; rua=mailto:dmarc@example.test")
+def test_parse_tags():
+    tags = dns_checks.parse_tags("v=DMARC1; p=reject; rua=mailto:dmarc@example.test")
     assert tags == {"v": "DMARC1", "p": "reject", "rua": "mailto:dmarc@example.test"}
 
 
@@ -169,6 +170,7 @@ def test_dmarc_invalid_policy():
 def test_find_dkim_selectors(monkeypatch):
     monkeypatch.setattr(dns_checks, "get_txt_records", fake_get_txt_records)
     # The order follows DKIM_SELECTORS, so "google" comes first.
+    # "default" has an empty (revoked) key, so it must not count as found.
     assert dns_checks.find_dkim_selectors("dkim.test") == ["google", "selector1"]
 
 

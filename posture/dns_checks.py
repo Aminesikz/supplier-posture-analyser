@@ -61,8 +61,10 @@ def find_dkim_selectors(domain):
     for selector in DKIM_SELECTORS:
         records = get_txt_records(selector + "._domainkey." + domain)
         for record in records:
-            # A DKIM key record always has a "p=" tag holding the public key.
-            if "p=" in record:
+            # The "p" tag holds the public key. An empty "p=" means the key was revoked,
+            # which domains that never send email often publish on purpose.
+            tags = parse_tags(record)
+            if tags.get("p", "") != "":
                 found.append(selector)
                 break
     return found
@@ -239,11 +241,12 @@ def find_dmarc_records(txt_records):
     return dmarc_records
 
 
-def parse_dmarc_tags(dmarc_record):
+def parse_tags(record):
+    # DMARC and DKIM records are both lists of "key=value" separated by ";".
     # "v=DMARC1; p=none; rua=mailto:a@b.com"
     # becomes {"v": "DMARC1", "p": "none", "rua": "mailto:a@b.com"}
     tags = {}
-    for part in dmarc_record.split(";"):
+    for part in record.split(";"):
         if "=" in part:
             key, value = part.split("=", 1)
             tags[key.strip().lower()] = value.strip()
@@ -267,7 +270,7 @@ def check_dmarc(dmarc_records):
         )]
 
     record = dmarc_records[0]
-    tags = parse_dmarc_tags(record)
+    tags = parse_tags(record)
     policy = tags.get("p", "").lower()
     findings = []
 
