@@ -22,6 +22,7 @@ def parse_args():
         "Only check domains you own or have permission to assess.",
     )
     parser.add_argument("domain", help="the domain to check, for example example.com")
+    parser.add_argument("--out-dir", default="reports", help="folder for the JSON and HTML reports (default: reports)")
     return parser.parse_args()
 
 
@@ -118,8 +119,7 @@ def main():
 
     checked_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     data = report.build_report_data(domain, findings, score, band, supplier_questions, checked_at)
-    # TODO (Amine): add an --out-dir flag in parse_args() and use args.out_dir here.
-    json_path, html_path = report.write_reports(data, "reports")
+    json_path, html_path = report.write_reports(data, args.out_dir)
     print()
     print("JSON report: " + json_path)
     print("HTML report: " + html_path)

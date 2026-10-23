@@ -1,7 +1,6 @@
 import sys
 
 import dns.exception
-import pytest
 
 from posture import dns_checks
 from posture import main
@@ -47,8 +46,6 @@ def test_dns_failure_becomes_error_finding(monkeypatch):
     assert findings[0].status == "error"
 
 
-# Amine: remove ONLY the "@pytest.mark.skip" line once --out-dir is added.
-@pytest.mark.skip(reason="--out-dir not added yet")
 def test_out_dir_flag(monkeypatch):
     # sys.argv is the list of words typed on the command line. We fake it here.
     monkeypatch.setattr(sys, "argv", ["posture", "example.com", "--out-dir", "my-reports"])
@@ -57,7 +54,6 @@ def test_out_dir_flag(monkeypatch):
     assert args.out_dir == "my-reports"
 
 
-@pytest.mark.skip(reason="--out-dir not added yet")
 def test_out_dir_default_is_reports(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["posture", "example.com"])
     args = main.parse_args()
