@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supplier posture report: {{ report.domain }}</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 0 16px; color: #222; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+  th { background: #f2f2f2; }
+  .pass { color: #1a7f37; }
+  .warn { color: #9a6700; }
+  .fail { color: #cf222e; }
+  .info, .error { color: #555; }
+  .evidence { font-family: monospace; font-size: 12px; color: #555; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<h1>Supplier posture report: {{ report.domain }}</h1>
+<p>Checked on {{ report.checked_at }}</p>
+
+<h2>Score: {{ report.score }}/100 ({{ report.band }})</h2>
+{% if report.error_count > 0 %}
+<p><strong>Note:</strong> {{ report.error_count }} check(s) could not finish, so the score may be too high.</p>
+{% endif %}
+
+<h2>Questions to ask this supplier</h2>
+{% if report.questions %}
+<ol>
+  {% for question in report.questions %}
+  <li>{{ question }}</li>
+  {% endfor %}
+</ol>
+{% else %}
+<p>No questions. Every check passed.</p>
+{% endif %}
+
+<h2>Findings</h2>
+<table>
+  <tr>
+    <th>Status</th>
+    <th>Check</th>
+    <th>Points lost</th>
+  </tr>
+  {% for finding in report.findings %}
+  <tr>
+    <td class="{{ finding.status }}">{{ finding.status | upper }}</td>
+    <td>
+      <strong>{{ finding.title }}</strong><br>
+      {{ finding.detail }}
+      {% if finding.evidence %}
+      <div class="evidence">{{ finding.evidence }}</div>
+      {% endif %}
+    </td>
+    <td>{{ finding.points_lost }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>About this report</h2>
+<p>This report comes from passive checks only: public DNS records and normal requests to the
+main website. The score weights are my own judgement, not an official standard. A missing
+DKIM result does not prove DKIM is missing. Headers are only checked on the home page.</p>
+
+</body>
+</html>

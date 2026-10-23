@@ -12,7 +12,7 @@ WEIGHTS = {
     "spf_plus_all": 20,  # worse than no SPF: it approves fake email from any server
     "spf_missing": 15,  # less than DMARC, because SPF alone does not protect the visible "From"
     "dmarc_policy_none": 15,  # DMARC exists but only reports, it does not block anything
-    "dmarc_policy_invalid": 10,  # mail servers usually treat a bad policy like p=none
+    "dmarc_policy_invalid": 15,  # mail servers usually treat a bad policy like p=none
     "spf_neutral_all": 10,  # SPF says nothing about servers that are not on the list
     "spf_multiple": 10,  # mail servers treat SPF as broken
     "spf_too_many_lookups": 10,  # mail servers stop at 10 lookups and treat SPF as broken
@@ -56,3 +56,12 @@ def get_band(score):
         return "needs work"
     else:
         return "poor"
+
+
+def count_errors(findings):
+    # Checks that could not finish cost 0 points, so the score may be too high.
+    error_count = 0
+    for finding in findings:
+        if finding.status == "error":
+            error_count += 1
+    return error_count

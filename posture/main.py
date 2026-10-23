@@ -1,10 +1,12 @@
 import argparse
 import sys
+from datetime import datetime, timezone
 
 import dns.exception
 
 from posture import dns_checks
 from posture import questions
+from posture import report
 from posture import scoring
 from posture import tls_checks
 from posture import web_checks
@@ -88,10 +90,7 @@ def print_summary(domain, findings, score, band, questions):
     print()
     print("Score: " + str(score) + "/100 (" + band + ")")
 
-    error_count = 0
-    for finding in findings:
-        if finding.status == "error":
-            error_count += 1
+    error_count = scoring.count_errors(findings)
     if error_count > 0:
         print("Note: " + str(error_count) + " check(s) could not finish, so the score may be too high.")
 
@@ -116,6 +115,14 @@ def main():
     band = scoring.get_band(score)
     supplier_questions = questions.generate_questions(findings)
     print_summary(domain, findings, score, band, supplier_questions)
+
+    checked_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    data = report.build_report_data(domain, findings, score, band, supplier_questions, checked_at)
+    # TODO (Amine): add an --out-dir flag in parse_args() and use args.out_dir here.
+    json_path, html_path = report.write_reports(data, "reports")
+    print()
+    print("JSON report: " + json_path)
+    print("HTML report: " + html_path)
     return 0
 
 
