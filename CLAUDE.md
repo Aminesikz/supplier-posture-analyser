@@ -42,6 +42,7 @@ Not in version 1: DNSSEC, subdomain discovery, port scanning, anything active.
 - Do not add any other dependency without asking first.
 - Questions-to-ask come from simple if-rules. No LLM.
 - Scoring: start at 100, subtract per finding. All weights live in one dictionary in posture/scoring.py, each with a short comment on why.
+- Tests use fake DNS answers and fake HTTP responses. Tests must never hit the real network.
 
 ## How we work
 
