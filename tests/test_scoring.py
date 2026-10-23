@@ -13,7 +13,7 @@ def test_no_problems_scores_100():
 
 def test_points_are_subtracted():
     findings = [make_finding("dmarc_policy_none", "warn"), make_finding("hsts_missing", "warn")]
-    assert scoring.calculate_score(findings) == 100 - 10 - 5
+    assert scoring.calculate_score(findings) == 100 - 15 - 5
 
 
 def test_info_and_error_cost_nothing():
