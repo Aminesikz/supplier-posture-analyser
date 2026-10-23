@@ -43,25 +43,10 @@ Not in version 1: DNSSEC, subdomain discovery, port scanning, anything active.
 - Questions-to-ask come from simple if-rules. No LLM.
 - Scoring: start at 100, subtract per finding. All weights live in one dictionary in posture/scoring.py, each with a short comment on why.
 
-## Code style
-
-- Write like a careful junior developer. Simple functions, plain names, small files.
-- No clever tricks, no design patterns, no async, no plugin systems.
-- No classes, except the Finding dataclass.
-- Short comments in simple English, only where something is not obvious. No long docstrings on every function.
-- Amine must understand every line. If something needs a hard concept, explain it in chat first and keep the code simple.
-- Tests use fake DNS answers and fake HTTP responses. Tests must never hit the real network.
-
-## Docs style
-
-- Plain, simple English, first person ("I built this to...").
-- Short sentences. No marketing words (robust, seamless, powerful, leverage, comprehensive).
-- No emojis, no badges, no big feature tables, no em dashes.
-- Limitations must be honest and specific.
-
 ## How we work
 
-- Build in small phases. Stop after each phase and wait for Amine to say "next".
+- If you are asked to build something, build it in small phases. Stop after each phase and wait for Amine to say "next".
+- When Amine writes code, review it and run the tests (with nothing skipped) before moving on.
 - After each phase, say in a few lines what was built and which file to read first.
 - Commit after each phase with a short, normal commit message.
 - No CI and no Docker. Amine will add them later.
