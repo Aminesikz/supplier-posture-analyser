@@ -19,7 +19,7 @@ I wanted a quick first look based only on public information, with questions in 
 You need Python 3.11 or newer. I tested it on Python 3.14.
 
 ```
-git clone <repo-url>
+git clone https://github.com/Aminesikz/supplier-posture-analyser.git
 cd supplier-posture-analyser
 python3 -m venv .venv
 source .venv/bin/activate
