@@ -10,4 +10,4 @@ Only check domains you own or have permission to assess.
 
 If you find a security problem in this tool, please do not open a public issue. Use the "Report a vulnerability" button in the Security tab of this GitHub repository.
 
-I will reply as soon as I can. This is a student project, so please be patient.
+I will reply as soon as I can. This is a graduate project, so please be patient.
