@@ -42,6 +42,15 @@ def looks_like_domain(domain):
     for character in domain:
         if character not in ALLOWED_DOMAIN_CHARACTERS:
             return False
+    # Only digits and dots means an IP address, like 127.0.0.1. This tool is for domains.
+    if domain.replace(".", "").isdigit():
+        return False
+    # DNS rules: each part between dots has 1 to 63 characters, the whole name at most 253.
+    if len(domain) > 253:
+        return False
+    for label in domain.split("."):
+        if len(label) == 0 or len(label) > 63:
+            return False
     return True
 
 

@@ -22,6 +22,18 @@ def test_looks_like_domain():
     assert not main.looks_like_domain("example.com;rm -rf")
 
 
+def test_looks_like_domain_rejects_ip_addresses():
+    assert not main.looks_like_domain("127.0.0.1")
+    assert not main.looks_like_domain("169.254.169.254")
+
+
+def test_looks_like_domain_rejects_bad_labels():
+    assert not main.looks_like_domain("..")
+    assert not main.looks_like_domain("example..com")
+    assert not main.looks_like_domain("a" * 64 + ".com")
+    assert main.looks_like_domain("a" * 63 + ".com")
+
+
 def test_dns_failure_becomes_error_finding(monkeypatch):
     def broken_email_checks(domain):
         raise dns.exception.Timeout()

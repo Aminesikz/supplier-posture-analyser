@@ -110,17 +110,33 @@ def test_count_lookups_follows_includes(monkeypatch):
 
 def test_count_lookups_over_limit(monkeypatch):
     monkeypatch.setattr(dns_checks, "get_txt_records", fake_get_txt_records)
-    # 4 includes + a + mx = 6, then each include has a + mx = 8 more. Total 14.
+    # The real total is 14, but counting stops as soon as it goes over 10.
     count = dns_checks.count_spf_lookups(FAKE_TXT_RECORDS["big.test"][0])
-    assert count == 14
+    assert count == 11
     assert get_ids(dns_checks.check_spf_lookups(count)) == ["spf_too_many_lookups"]
 
 
 def test_count_lookups_stops_on_include_loop(monkeypatch):
     monkeypatch.setattr(dns_checks, "get_txt_records", fake_get_txt_records)
-    # loop-a includes loop-b, which includes loop-a again. The safety limit must stop it.
+    # loop-a includes loop-b, which includes loop-a again. Counting must still stop.
     count = dns_checks.count_spf_lookups(FAKE_TXT_RECORDS["loop-a.test"][0])
-    assert count == dns_checks.MAX_SPF_RECORDS_TO_READ
+    assert count == 11
+
+
+def test_count_lookups_stops_early_on_hostile_record(monkeypatch):
+    # One record with 200 includes. The tool must not make 200 DNS lookups.
+    lookups_made = []
+
+    def counting_get_txt_records(name):
+        lookups_made.append(name)
+        return []
+
+    monkeypatch.setattr(dns_checks, "get_txt_records", counting_get_txt_records)
+    record = "v=spf1"
+    for number in range(200):
+        record = record + " include:host" + str(number) + ".test"
+    dns_checks.count_spf_lookups(record)
+    assert len(lookups_made) == 11
 
 
 def test_spf_lookups_ok():

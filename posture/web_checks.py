@@ -7,18 +7,41 @@ from posture.finding import Finding
 USER_AGENT = "supplier-posture-analyser/0.1 (passive check)"
 HTTP_TIMEOUT = 10  # seconds allowed for each web request
 PAUSE_SECONDS = 1  # short wait before each request, to be polite to the server
+MAX_SECURITY_TXT_BYTES = 32000  # a real security.txt is tiny, so never read more than this
 
 
 # ---------- Fetching ----------
 
 
 def fetch(url):
-    # Returns the response, or None if the request failed
+    # Returns the response, or None if the request failed.
+    # stream=True stops requests from downloading the page body. We only need the
+    # status, headers and final address, and a hostile server could send a huge body.
     time.sleep(PAUSE_SECONDS)
     try:
-        return requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=HTTP_TIMEOUT)
+        response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=HTTP_TIMEOUT, stream=True)
     except requests.RequestException:
         return None
+    response.close()
+    return response
+
+
+def fetch_security_txt(host):
+    # Returns the status code and the start of the file. Status 0 means the request failed.
+    time.sleep(PAUSE_SECONDS)
+    url = "https://" + host + "/.well-known/security.txt"
+    try:
+        response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=HTTP_TIMEOUT, stream=True)
+        # Read the body in small pieces and stop once we have enough.
+        body = b""
+        for piece in response.iter_content(chunk_size=1024):
+            body = body + piece
+            if len(body) >= MAX_SECURITY_TXT_BYTES:
+                break
+        response.close()
+    except requests.RequestException:
+        return 0, ""
+    return response.status_code, body.decode("utf-8", errors="replace")
 
 
 def get_homepage(domain):
@@ -208,10 +231,7 @@ def run_web_checks(domain, host, homepage):
     findings.extend(check_frame_protection(headers))
     findings.extend(check_referrer_policy(headers))
 
-    security_txt = fetch("https://" + host + "/.well-known/security.txt")
-    if security_txt is None:
-        findings.extend(check_security_txt(0, ""))
-    else:
-        findings.extend(check_security_txt(security_txt.status_code, security_txt.text))
+    status_code, text = fetch_security_txt(host)
+    findings.extend(check_security_txt(status_code, text))
 
     return findings

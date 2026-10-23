@@ -5,7 +5,6 @@ from posture.finding import Finding
 DNS_TIMEOUT = 5  # seconds allowed for each DNS lookup
 DKIM_SELECTORS = ["google", "selector1", "selector2", "default", "k1"]
 MAX_SPF_LOOKUPS = 10  # the limit set by the SPF standard (RFC 7208)
-MAX_SPF_RECORDS_TO_READ = 30  # safety limit so a loop of includes cannot run forever
 
 
 # ---------- Fetching from DNS ----------
@@ -185,15 +184,19 @@ def count_spf_lookups(spf_record):
     # Count the DNS lookups a mail server must do to check this SPF record.
     # "include:" and "redirect=" point to other SPF records, and their lookups count too.
     # I keep a list of records still to read and work through it with a while loop.
+    # Mail servers give up after 10 lookups, so I stop as soon as the count goes over 10.
+    # This means a hostile record (or a loop of includes) can never make the tool do
+    # more than 11 lookups here.
     count = 0
     records_to_read = [spf_record]
-    records_read = 0
 
-    while len(records_to_read) > 0 and records_read < MAX_SPF_RECORDS_TO_READ:
+    while len(records_to_read) > 0 and count <= MAX_SPF_LOOKUPS:
         record = records_to_read.pop(0)
-        records_read += 1
 
         for term in record.lower().split():
+            if count > MAX_SPF_LOOKUPS:
+                break
+
             # Remove the qualifier at the front, e.g. "~include:x" becomes "include:x".
             term = term.lstrip("+-~?")
 
@@ -218,8 +221,7 @@ def count_spf_lookups(spf_record):
 def check_spf_lookups(lookup_count):
     if lookup_count > MAX_SPF_LOOKUPS:
         return [Finding(
-            "spf_too_many_lookups", "fail",
-            "SPF needs " + str(lookup_count) + " DNS lookups (limit is 10)",
+            "spf_too_many_lookups", "fail", "SPF needs more than 10 DNS lookups",
             "The SPF record needs more than 10 DNS lookups. Mail servers stop at 10 and treat "
             "SPF as broken, so it may not protect the domain at all.",
         )]
